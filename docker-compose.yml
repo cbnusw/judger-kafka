@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+    judger_server:
+        build:
+            context: .
+            network: host
+        volumes:
+            - /소스코드 업로드폴더:/source
+            - /테스트셋 폴더:/io

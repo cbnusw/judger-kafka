@@ -10,4 +10,4 @@ rm -rf /judger/*
 mkdir -p /judger/run
 chmod 777 /judger/run
 
-exec node index.js
+exec pm2-runtime start config/pm2.config.js

@@ -3,7 +3,7 @@ services:
     judger_server:
         build:
             context: .
-            network: host
         volumes:
-            - /소스코드 업로드폴더:/source
-            - /테스트셋 폴더:/io
+            - /Users/kmahn/WebstormProjects/cbnusw/judge-api-server/uploads:/source
+            - /Users/kmahn/WebstormProjects/cbnusw/judge-api-server/uploads:/io
+        network_mode: "host"

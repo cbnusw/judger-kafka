@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "pm2 start index.js"
   },
   "repository": {
     "type": "git",
@@ -21,5 +22,8 @@
     "kafkajs": "^1.15.0",
     "mongoose": "^5.12.11",
     "lodash": "4.17.21"
+  },
+  "devDependencies": {
+    "pm2": "^4.5.5"
   }
 }

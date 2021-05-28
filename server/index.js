@@ -1,7 +1,7 @@
 const cluster = require("cluster");
 const os = require("os");
 
-const sumbitConsumer = require("./submit-consumer");
+const submitConsumer = require("./submit-consumer");
 const resultProducer = require("./result-producer");
 
 const errorTypes = ["unhandledRejection", "uncaughtException"];
@@ -52,7 +52,7 @@ if (cluster.isMaster) {
     });
 } else {
     console.log(`Worker ${process.pid} is running`);
-    const consumer = sumbitConsumer.init().catch((e) =>
+    const consumer = submitConsumer.init().catch((e) =>
         console.error(`[judger-consumer] ${e.message}`, e)
     );
 

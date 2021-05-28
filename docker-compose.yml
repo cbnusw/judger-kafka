@@ -3,7 +3,7 @@ services:
     judger_server:
         build:
             context: .
+            network: host
         volumes:
-            - /Users/kmahn/WebstormProjects/cbnusw/judge-api-server/uploads:/source
-            - /Users/kmahn/WebstormProjects/cbnusw/judge-api-server/uploads:/io
-        network_mode: "host"
+            - /var/www/judger-api-server/uploads:/source
+            - /var/www/judger-api-server/uploads:/io

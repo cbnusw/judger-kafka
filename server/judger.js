@@ -1,4 +1,4 @@
-// const fs = require('fs');
+const { promises } = require('fs');
 const path = require('path');
 const { parse } = require('url');
 
@@ -21,12 +21,16 @@ const startJudge = async (submitId) => {
   config['language'] = submit.language;
   config['code_name'] = path.join(CODE_BASE_PATH, getBasename(submit.source));
 
+  let compiledPath;
+
   switch (config['language']) {
     case 'c':
-      config['exe_path'] = base.compile_c(config['code_name']);
+      compiledPath = base.compile_c(config['code_name']);
+      config['exe_path'] = compiledPath;
       break;
     case 'c++':
-      config['exe_path'] = base.compile_cpp(config['code_name']);
+      compiledPath = base.compile_cpp(config['code_name'])
+      config['exe_path'] = compiledPath;
       break;
     case 'python2':
       config['exe_path'] = '/usr/bin/python';
@@ -37,17 +41,20 @@ const startJudge = async (submitId) => {
       config['args'] = [path.join(base.code_base_path, config['code_name'])];
       break;
     case 'java':
+      compiledPath = base.compile_java(config['code_name']);
       config['exe_path'] = '/usr/bin/java';
-      config['args'] = `-cp ${base.code_base_path} -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.security.policy==/etc/java_policy -Djava.awt.headless=true ${base.compile_java(config['code_name'])}`.split(' ');
+      config['args'] = `-cp ${base.code_base_path} -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.security.policy==/etc/java_policy -Djava.awt.headless=true ${compiledPath}`.split(' ');
       config['memory_limit_check_only'] = 1;
       break;
     case 'kotlin':
+      compiledPath = base.compile_kotlin(config['code_name']);
       config['exe_path'] = '/usr/bin/java';
-      config['args'] = `-cp ${base.code_base_path} -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.security.policy==/etc/java_policy -Djava.awt.headless=true ${base.compile_kotlin(config['code_name'])}`.split(' ');
+      config['args'] = `-cp ${base.code_base_path} -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.security.policy==/etc/java_policy -Djava.awt.headless=true ${compiledPath}`.split(' ');
       config['memory_limit_check_only'] = 1;
       break;
     case 'go':
-      config['exe_path'] = base.compile_go(config['code_name']);
+      compiledPath = base.compile_go(config['code_name']);
+      config['exe_path'] = compiledPath;
       config['memory_limit_check_only'] = 1;
       break;
   }
@@ -55,6 +62,11 @@ const startJudge = async (submitId) => {
   const result = await judge(config);
 
   const type = ['done', 'timeout', 'timeout', 'memory', 'runtime', 'fail'];
+
+  if (result['type'] == judger.RESULT_WRONG_ANSWER)
+    result['type'] = 5;
+
+
   await submit.updateOne({
     $set: {
       result: {
@@ -64,6 +76,17 @@ const startJudge = async (submitId) => {
       }
     }
   });
+
+  const resultPath = path.join(OUTPUT_PATH, `${config['submit_id']}.out`);
+
+  try {
+    await promises.unlink(resultPath);
+    if (compiledPath) {
+      await promises.unlink(compiledPath);
+    }
+  } catch (e) {
+    console.error(e);
+  }
 
   return result;
 }

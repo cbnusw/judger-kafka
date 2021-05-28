@@ -1,4 +1,4 @@
-const { promises } = require('fs');
+const { promises, fstat, existsSync } = require('fs');
 const path = require('path');
 const { parse } = require('url');
 
@@ -59,9 +59,22 @@ const startJudge = async (submitId) => {
       break;
   }
 
+  if (!existsSync(compiledPath)) {
+    await submit.updateOne({
+      $set: {
+        result: {
+          type: 'compile',
+          memory: 0,
+          time: 0
+        }
+      }
+    });
+    return {};
+  }
+
   const result = await judge(config);
 
-  const type = ['done', 'timeout', 'timeout', 'memory', 'runtime', 'fail'];
+  const type = ['done', 'timeout', 'timeout', 'memory', 'runtime', 'wrong'];
 
   if (result['type'] == judger.RESULT_WRONG_ANSWER)
     result['type'] = 5;
@@ -95,6 +108,9 @@ const judge = async (config) => {
   const problem = await Problem.findById(submit.problem)
     .populate({ path: 'ioSet.inFile' })
     .populate({ path: 'ioSet.outFile' });
+
+  config["max_real_time"] = problem.options.maxRealTime;
+  config["max_memory"] = problem.options.maxMemory * 1024 * 1024;
 
   const { ioSet } = problem;
 

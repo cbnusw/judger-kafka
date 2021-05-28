@@ -22,7 +22,7 @@ const startJudge = async (submitId) => {
   config['code_name'] = path.join(CODE_BASE_PATH, getBasename(submit.source));
 
   let compiledPath;
-
+  console.log("컴파일 시작");
   switch (config['language']) {
     case 'c':
       compiledPath = base.compile_c(config['code_name']);
@@ -58,6 +58,7 @@ const startJudge = async (submitId) => {
       config['memory_limit_check_only'] = 1;
       break;
   }
+  console.log("컴파일 완료");
 
   if (!existsSync(compiledPath)) {
     await submit.updateOne({
@@ -72,7 +73,9 @@ const startJudge = async (submitId) => {
     return {};
   }
 
+  console.log("채점 시작");
   const result = await judge(config);
+  console.log("채점 완료");
 
   const type = ['done', 'timeout', 'timeout', 'memory', 'runtime', 'wrong'];
 
@@ -92,6 +95,7 @@ const startJudge = async (submitId) => {
 
   const resultPath = path.join(OUTPUT_PATH, `${config['submit_id']}.out`);
 
+  console.log("삭제 시작");
   try {
     await promises.unlink(resultPath);
     if (compiledPath) {
@@ -100,7 +104,7 @@ const startJudge = async (submitId) => {
   } catch (e) {
     console.error(e);
   }
-
+  console.log("삭제 완료");
   return result;
 }
 
@@ -112,6 +116,9 @@ const judge = async (config) => {
   config["max_real_time"] = problem.options.maxRealTime;
   config["max_memory"] = problem.options.maxMemory * 1024 * 1024;
 
+  console.log("real", config["max_real_time"]);
+  console.log("memory", config["max_memory"]);
+
   const { ioSet } = problem;
 
   let result = { 'memory': 0, 'real_time': 0 };
@@ -120,6 +127,10 @@ const judge = async (config) => {
     config['input_path'] = path.join('/io', getBasename(io.inFile.url)); // todo 연결된 볼륨 주소로 치환
     config['answer_path'] = path.join('/io', getBasename(io.outFile.url)); // todo 연결된 볼륨 주소로 치환
     config['output_path'] = path.join(OUTPUT_PATH, `${config['submit_id']}.out`);
+
+    console.log(config['input_path']);
+    console.log(config['answer_path']);
+    console.log(config['output_path']);
 
     const judgerResult = await judger.run(config);
 
@@ -133,6 +144,8 @@ const judge = async (config) => {
 
     if (result['real_time'] > judgerResult['real_time'])
       result['real_time'] = judgerResult['real_time'];
+
+    console.log(result['memory'], result['real_time']);
 
     if (judgerResult['result'] != judger.RESULT_SUCCESS)
       break;

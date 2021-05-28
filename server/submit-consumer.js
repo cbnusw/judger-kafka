@@ -24,8 +24,9 @@ const init = async () => {
     eachMessage: async ({ topic, partition, message }) => {
       const submitId = message;
 
-      const result = await judger.startJudge(submitId);
-
+      console.log("시작", submitId);
+      await judger.startJudge(submitId);
+      console.log("프로듀서 동작");
       resultProducer.sendMessage(submitId);
     },
   });
